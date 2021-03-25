@@ -7,28 +7,27 @@ import time
 import pytz
 
 
-#This will create a list of buyers:
-#buyers = tree.xpath('//div[@class="iptbl"]/text()')
-#This will create a list of prices
 
 def get_game():
+    """
+    do- parse an internet site to see which games of the nba were good
+    :return: return string that contains the wanted massage
+    """
     try:
         fmt = '%Y-%m-%d %H:%M:%S %Z%z'
         page = requests.get('http://stats.inpredictable.com/nba/preCap.php')
         tree = html.fromstring(page.content)
+        # get games played in the day
         games = tree.xpath('//a[@target="_blank"]/text()')
         Excitement= tree.xpath('/html/body/div[5]/div/div/table/tbody/tr/td[4]/text()')
         date = tree.xpath('/html/body/div[5]/div/span/text()')
         web_date = date[0].split(',')[0].split()[5]
-        #today_date = str(datetime.date.today()).split('-')[2]
-        #tz_NY = pytz.timezone('America/New_York')
-        #datetime_NY = datetime.datetime.now(tz_NY)
-        #today_date = str(datetime_NY.today()).split('-')[2][0:2]
         before = datetime.date.today() - timedelta.Timedelta(minutes=1440)#24 hours
         today_date = str(before.strftime(fmt)).split('-')[2][0:2]
-        print today_date
-        print web_date
+        #print (today_date)
+        #print (web_date)
 
+        #check if the games presented are relevant for today
         if today_date != web_date:
             return "no games today"
 
@@ -40,7 +39,7 @@ def get_game():
             if float(i)>=9:
                 good_games.append(games[c+1])
             c+=1
-        #print good_games
+        #print (good_games)
 
         #crete string
         string=""
@@ -55,8 +54,13 @@ def get_game():
         return "there were no games"
 
 
-# function for sending SMS
-def sendSMS(subject):
+# function for sending emails
+def send_email(subject):
+    """
+    do- send email
+    :param subject- the content of the email
+    :return: None
+    """
     try:
         server =smtplib.SMTP('smtp.gmail.com:587')#587
         server.ehlo()
@@ -66,9 +70,9 @@ def sendSMS(subject):
             server.sendmail(config.EMAIL_ADRESS_FROM, email, 'Subject: {}\n\n{}'.format(subject, ""))
         #server.sendmail(config.EMAIL_ADRESS_FROM,config.EMAIL_ADRESS_TO,'Subject: {}\n\n{}'.format(subject,""))
         server.quit()
-        print "email sent"
+        print ("email sent")
     except:
-        print "email not sent"
+        print ("email not sent")
 
 
 
@@ -76,10 +80,10 @@ def sendSMS(subject):
 def start():
     while True:
         now = datetime.datetime.now()
-        print now.hour
+        print (now.hour)
         if now.hour == 8:
             massage = get_game()
-            sendSMS(massage)
+            send_email(massage)
         time.sleep(60 * 60)
 
 
